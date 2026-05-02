@@ -16,4 +16,11 @@ data class Product(
     var imageUrl: String = ""
 )
 
-enum class Category { ELECTRONICS, CLOTHING, FOOD, BOOKS, SPORTS, HOME, OTHER }
+enum class Category {
+    BATH,        // Бани и чаны
+    GRILL,       // Мангалы и барбекю
+    FURNITURE,   // Мебель
+    GARDEN,      // Сад и огород
+    TOOLS,       // Инструменты
+    OTHER
+}
