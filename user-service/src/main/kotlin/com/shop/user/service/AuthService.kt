@@ -27,4 +27,23 @@ class AuthService(
         val user = userRepository.findByEmail(req.email).orElseThrow()
         return AuthResponse(jwtService.generateToken(user.email), user.email, user.name)
     }
+    fun getProfile(email: String): UserProfileResponse {
+        val user = userRepository.findByEmail(email)
+            .orElseThrow { NoSuchElementException("User not found") }
+        return user.toProfileResponse()
+    }
+
+    fun updateProfile(email: String, req: UpdateProfileRequest): UserProfileResponse {
+        val user = userRepository.findByEmail(email)
+            .orElseThrow { NoSuchElementException("User not found") }
+        req.name?.let { user.name = it }
+        req.surname?.let { user.surname = it }
+        req.patronymic?.let { user.patronymic = it }
+        req.phone?.let { user.phone = it }
+        req.city?.let { user.city = it }
+        req.region?.let { user.region = it }
+        req.street?.let { user.street = it }
+        req.zipCode?.let { user.zipCode = it }
+        return userRepository.save(user).toProfileResponse()
+    }
 }

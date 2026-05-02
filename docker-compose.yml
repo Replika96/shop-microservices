@@ -91,6 +91,34 @@ services:
       SPRING_DATASOURCE_PASSWORD: shop123
       SPRING_RABBITMQ_HOST: rabbitmq
 
+  cart-service:
+    build:
+      context: .
+      dockerfile: cart-service/Dockerfile
+    ports:
+      - "8085:8085"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/shopdb
+      SPRING_DATASOURCE_USERNAME: shop
+      SPRING_DATASOURCE_PASSWORD: shop123
+
+  wishlist-service:
+    build:
+      context: .
+      dockerfile: wishlist-service/Dockerfile
+    ports:
+      - "8086:8086"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/shopdb
+      SPRING_DATASOURCE_USERNAME: shop
+      SPRING_DATASOURCE_PASSWORD: shop123
+
   api-gateway:
     build:
       context: .

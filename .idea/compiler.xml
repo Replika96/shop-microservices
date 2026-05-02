@@ -8,6 +8,9 @@
       <module name="shop.api-gateway" options="-parameters" />
       <module name="shop.api-gateway.main" options="-parameters" />
       <module name="shop.api-gateway.test" options="-parameters" />
+      <module name="shop.cart-service" options="-parameters" />
+      <module name="shop.cart-service.main" options="-parameters" />
+      <module name="shop.cart-service.test" options="-parameters" />
       <module name="shop.notification-service" options="-parameters" />
       <module name="shop.notification-service.main" options="-parameters" />
       <module name="shop.notification-service.test" options="-parameters" />
@@ -20,6 +23,9 @@
       <module name="shop.user-service" options="-parameters" />
       <module name="shop.user-service.main" options="-parameters" />
       <module name="shop.user-service.test" options="-parameters" />
+      <module name="shop.wishlist-service" options="-parameters" />
+      <module name="shop.wishlist-service.main" options="-parameters" />
+      <module name="shop.wishlist-service.test" options="-parameters" />
     </option>
   </component>
 </project>
