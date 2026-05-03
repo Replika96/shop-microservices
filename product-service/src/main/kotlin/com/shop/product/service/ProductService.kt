@@ -2,8 +2,10 @@ package com.shop.product.service
 
 import com.shop.product.model.*
 import com.shop.product.repository.ProductRepository
+import com.shop.product.repository.ProductSpecification
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.math.BigDecimal
 
 @Service
 class ProductService(private val productRepository: ProductRepository) {
@@ -27,9 +29,11 @@ class ProductService(private val productRepository: ProductRepository) {
 
     fun search(
         search: String?, category: Category?,
-        minPrice: java.math.BigDecimal?, maxPrice: java.math.BigDecimal?
+        minPrice: BigDecimal?, maxPrice: BigDecimal?
     ): List<ProductResponse> =
-        productRepository.search(search, category, minPrice, maxPrice).map { it.toResponse() }
+        productRepository.findAll(
+            ProductSpecification.filter(search, category, minPrice, maxPrice)
+        ).map { it.toResponse() }
 
     @Transactional
     fun update(id: Long, req: UpdateProductRequest): ProductResponse {
