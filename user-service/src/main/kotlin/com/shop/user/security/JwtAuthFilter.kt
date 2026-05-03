@@ -27,6 +27,8 @@ class JwtAuthFilter(
             val auth = UsernamePasswordAuthenticationToken(userDetails, null, userDetails.authorities)
             auth.details = WebAuthenticationDetailsSource().buildDetails(req)
             SecurityContextHolder.getContext().authentication = auth
+            // сохраняем email в атрибутах запроса
+            req.setAttribute("userEmail", email)
         }
         chain.doFilter(req, res)
     }

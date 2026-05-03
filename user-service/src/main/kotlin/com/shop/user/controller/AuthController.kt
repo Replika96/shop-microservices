@@ -9,6 +9,7 @@ import com.shop.user.service.AuthService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
+import org.apache.tomcat.util.net.openssl.ciphers.Authentication
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -29,16 +30,14 @@ class AuthController(private val authService: AuthService) {
 
     @GetMapping("/profile")
     @Operation(summary = "Get current user profile")
-    fun getProfile(
-        @RequestHeader("X-User-Email") email: String
-    ): ResponseEntity<UserProfileResponse> =
-        ResponseEntity.ok(authService.getProfile(email))
+    fun getProfile(authentication: Authentication): ResponseEntity<UserProfileResponse> =
+        ResponseEntity.ok(authService.getProfile(authentication.name))
 
     @PatchMapping("/profile")
     @Operation(summary = "Update current user profile")
     fun updateProfile(
-        @RequestHeader("X-User-Email") email: String,
+        authentication: Authentication,
         @RequestBody req: UpdateProfileRequest
     ): ResponseEntity<UserProfileResponse> =
-        ResponseEntity.ok(authService.updateProfile(email, req))
+        ResponseEntity.ok(authService.updateProfile(authentication.name, req))
 }

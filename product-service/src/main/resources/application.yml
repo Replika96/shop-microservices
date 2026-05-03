@@ -23,3 +23,6 @@ springdoc:
     path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
+
+jwt:
+  secret: "MyVerySecretKeyThatIsAtLeast256BitsLongForHS256Algorithm!!"

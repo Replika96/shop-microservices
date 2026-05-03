@@ -5,6 +5,7 @@ import com.shop.order.service.OrderService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -18,22 +19,26 @@ class OrderController(private val orderService: OrderService) {
     @PostMapping
     @Operation(summary = "Create a new order")
     fun create(
-        @Parameter(description = "User email from JWT") @RequestHeader("X-User-Email") email: String,
+        request: HttpServletRequest,
         @Valid @RequestBody req: CreateOrderRequest
-    ): ResponseEntity<OrderResponse> =
-        ResponseEntity.status(HttpStatus.CREATED).body(orderService.create(email, req))
+    ): ResponseEntity<OrderResponse> {
+        val email = request.getAttribute("userEmail") as? String
+            ?: return ResponseEntity.status(401).build()
+        return ResponseEntity.status(HttpStatus.CREATED).body(orderService.create(email, req))
+    }
+
+    @GetMapping("/my")
+    @Operation(summary = "Get orders for current user")
+    fun getMyOrders(request: HttpServletRequest): ResponseEntity<List<OrderResponse>> {
+        val email = request.getAttribute("userEmail") as? String
+            ?: return ResponseEntity.status(401).build()
+        return ResponseEntity.ok(orderService.getByUser(email))
+    }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get order by ID")
     fun getById(@PathVariable id: Long): ResponseEntity<OrderResponse> =
         ResponseEntity.ok(orderService.getById(id))
-
-    @GetMapping("/my")
-    @Operation(summary = "Get orders for current user")
-    fun getMyOrders(
-        @Parameter(description = "User email from JWT") @RequestHeader("X-User-Email") email: String
-    ): ResponseEntity<List<OrderResponse>> =
-        ResponseEntity.ok(orderService.getByUser(email))
 
     @GetMapping
     @Operation(summary = "Get all orders (admin)")
