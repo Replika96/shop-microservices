@@ -1,21 +1,28 @@
 package com.shop.product.controller
 
-import com.shop.product.model.*
+import com.shop.product.model.Category
+import com.shop.product.model.CreateProductRequest
+import com.shop.product.model.ProductResponse
+import com.shop.product.model.UpdateProductRequest
+import com.shop.product.service.ImageService
 import com.shop.product.service.ProductService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
-import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 import java.math.BigDecimal
 
 @RestController
 @RequestMapping("/api/products")
 @Tag(name = "Products", description = "Каталог товаров с поиском и фильтрацией")
-class ProductController(private val productService: ProductService) {
+class ProductController(
+    private val productService: ProductService,
+    private val imageService: ImageService
+) {
 
     @GetMapping
     @Operation(summary = "Поиск и фильтрация товаров")
@@ -50,5 +57,14 @@ class ProductController(private val productService: ProductService) {
     fun delete(@PathVariable id: Long): ResponseEntity<Void> {
         productService.delete(id)
         return ResponseEntity.noContent().build()
+    }
+
+    @PostMapping("/upload-image")
+    @Operation(summary = "Загрузить изображение товара")
+    fun uploadImage(
+        @RequestParam("file") file: MultipartFile
+    ): ResponseEntity<Map<String, String>> {
+        val url = imageService.upload(file)
+        return ResponseEntity.ok(mapOf("url" to url))
     }
 }

@@ -90,6 +90,7 @@ services:
       SPRING_DATASOURCE_USERNAME: shop
       SPRING_DATASOURCE_PASSWORD: shop123
       SPRING_RABBITMQ_HOST: rabbitmq
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
 
   cart-service:
     build:

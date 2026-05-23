@@ -23,6 +23,10 @@ springdoc:
     path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
+cloudinary:
+  cloud-name: da8ybrkmy
+  api-key: "584274938627594"
+  api-secret: ${CLOUDINARY_API_SECRET}
 
 jwt:
   secret: "MyVerySecretKeyThatIsAtLeast256BitsLongForHS256Algorithm!!"

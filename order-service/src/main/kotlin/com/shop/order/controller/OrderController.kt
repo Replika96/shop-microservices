@@ -1,9 +1,10 @@
 package com.shop.order.controller
 
-import com.shop.order.model.*
+import com.shop.order.model.CreateOrderRequest
+import com.shop.order.model.OrderResponse
+import com.shop.order.model.UpdateStatusRequest
 import com.shop.order.service.OrderService
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
