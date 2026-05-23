@@ -19,8 +19,8 @@ data class CreateProductRequest @JsonCreator constructor(
 data class UpdateProductRequest @JsonCreator constructor(
     @JsonProperty("name") val name: String? = null,
     @JsonProperty("description") val description: String? = null,
-    @JsonProperty("price") val price: BigDecimal? = null,
-    @JsonProperty("stock") val stock: Int? = null,
+    @JsonProperty("price") @field:Positive val price: BigDecimal? = null,
+    @JsonProperty("stock") @field:Min(0) val stock: Int? = null,
     @JsonProperty("category") val category: Category? = null,
     @JsonProperty("imageUrl") val imageUrl: String? = null
 )
@@ -29,6 +29,14 @@ data class ProductResponse(
     val id: Long, val name: String, val description: String,
     val price: BigDecimal, val stock: Int,
     val category: Category, val imageUrl: String
+)
+
+data class PageResponse<T>(
+    val content: List<T>,
+    val totalElements: Long,
+    val totalPages: Int,
+    val page: Int,
+    val size: Int
 )
 
 fun Product.toResponse() = ProductResponse(id, name, description, price, stock, category, imageUrl)

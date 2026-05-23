@@ -2,14 +2,17 @@ package com.shop.product.controller
 
 import com.shop.product.model.Category
 import com.shop.product.model.CreateProductRequest
+import com.shop.product.model.PageResponse
 import com.shop.product.model.ProductResponse
 import com.shop.product.model.UpdateProductRequest
 import com.shop.product.service.ImageService
 import com.shop.product.service.ProductService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
+import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -30,9 +33,13 @@ class ProductController(
         @Parameter(description = "Поиск по названию") @RequestParam(required = false) search: String?,
         @Parameter(description = "Фильтр по категории") @RequestParam(required = false) category: Category?,
         @Parameter(description = "Минимальная цена") @RequestParam(required = false) minPrice: BigDecimal?,
-        @Parameter(description = "Максимальная цена") @RequestParam(required = false) maxPrice: BigDecimal?
-    ): ResponseEntity<List<ProductResponse>> =
-        ResponseEntity.ok(productService.search(search, category, minPrice, maxPrice))
+        @Parameter(description = "Максимальная цена") @RequestParam(required = false) maxPrice: BigDecimal?,
+        @Parameter(description = "Номер страницы (с 0)") @RequestParam(defaultValue = "0") page: Int,
+        @Parameter(description = "Размер страницы (макс 100)") @RequestParam(defaultValue = "20") size: Int
+    ): ResponseEntity<PageResponse<ProductResponse>> {
+        val pageable = PageRequest.of(page, size.coerceIn(1, 100))
+        return ResponseEntity.ok(productService.search(search, category, minPrice, maxPrice, pageable))
+    }
 
     @GetMapping("/{id}")
     @Operation(summary = "Получить товар по ID")
@@ -40,27 +47,27 @@ class ProductController(
         ResponseEntity.ok(productService.getById(id))
 
     @PostMapping
-    @Operation(summary = "Добавить товар (admin)")
+    @Operation(summary = "Добавить товар (admin)", security = [SecurityRequirement(name = "bearerAuth")])
     fun create(@Valid @RequestBody req: CreateProductRequest): ResponseEntity<ProductResponse> =
         ResponseEntity.status(HttpStatus.CREATED).body(productService.create(req))
 
     @PatchMapping("/{id}")
-    @Operation(summary = "Обновить товар (admin)")
+    @Operation(summary = "Обновить товар (admin)", security = [SecurityRequirement(name = "bearerAuth")])
     fun update(
         @PathVariable id: Long,
-        @RequestBody req: UpdateProductRequest
+        @Valid @RequestBody req: UpdateProductRequest
     ): ResponseEntity<ProductResponse> =
         ResponseEntity.ok(productService.update(id, req))
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Удалить товар (admin)")
+    @Operation(summary = "Удалить товар (admin)", security = [SecurityRequirement(name = "bearerAuth")])
     fun delete(@PathVariable id: Long): ResponseEntity<Void> {
         productService.delete(id)
         return ResponseEntity.noContent().build()
     }
 
     @PostMapping("/upload-image")
-    @Operation(summary = "Загрузить изображение товара")
+    @Operation(summary = "Загрузить изображение товара (admin)", security = [SecurityRequirement(name = "bearerAuth")])
     fun uploadImage(
         @RequestParam("file") file: MultipartFile
     ): ResponseEntity<Map<String, String>> {

@@ -26,4 +26,10 @@ data class OrderResponse(
 
 fun Order.toResponse() = OrderResponse(id, userEmail, productName, quantity, price, status, createdAt)
 
-data class OrderEvent(val orderId: Long, val userEmail: String, val status: String, val productName: String)
+data class OrderEvent(
+    val orderId: Long,
+    val userEmail: String,
+    val status: String,
+    val productName: String,
+    val quantity: Int
+)

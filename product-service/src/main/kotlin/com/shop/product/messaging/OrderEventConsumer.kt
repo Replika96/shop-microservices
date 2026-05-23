@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.amqp.rabbit.annotation.RabbitListener
 import org.springframework.stereotype.Service
 
-// Когда создаётся заказ — уменьшаем stock товара
 data class OrderCreatedEvent(
     val orderId: Long = 0,
     val productName: String = "",
@@ -18,8 +17,9 @@ class OrderEventConsumer(private val productService: ProductService) {
 
     @RabbitListener(queues = ["order.events"])
     fun onOrderEvent(event: OrderCreatedEvent) {
-        log.info("Order event received: orderId=${event.orderId}, product=${event.productName}")
-        // уменьшаем stock если товар найден по имени
-        productService.decreaseStockByName(event.productName, event.quantity)
+        log.info("Order event received: orderId={}, product={}, qty={}", event.orderId, event.productName, event.quantity)
+        if (event.quantity > 0) {
+            productService.decreaseStock(event.productName, event.quantity)
+        }
     }
 }

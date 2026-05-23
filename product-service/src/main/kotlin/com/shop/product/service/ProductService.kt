@@ -3,6 +3,8 @@ package com.shop.product.service
 import com.shop.product.model.*
 import com.shop.product.repository.ProductRepository
 import com.shop.product.repository.ProductSpecification
+import org.slf4j.LoggerFactory
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
@@ -10,6 +12,9 @@ import java.math.BigDecimal
 @Service
 class ProductService(private val productRepository: ProductRepository) {
 
+    private val log = LoggerFactory.getLogger(javaClass)
+
+    @Transactional
     fun create(req: CreateProductRequest): ProductResponse {
         val product = Product(
             name = req.name, description = req.description,
@@ -19,48 +24,65 @@ class ProductService(private val productRepository: ProductRepository) {
         return productRepository.save(product).toResponse()
     }
 
+    @Transactional(readOnly = true)
     fun getById(id: Long): ProductResponse =
         productRepository.findById(id)
             .map { it.toResponse() }
             .orElseThrow { NoSuchElementException("Product $id not found") }
 
-    fun getAll(): List<ProductResponse> =
-        productRepository.findAll().map { it.toResponse() }
-
+    @Transactional(readOnly = true)
     fun search(
         search: String?, category: Category?,
-        minPrice: BigDecimal?, maxPrice: BigDecimal?
-    ): List<ProductResponse> =
-        productRepository.findAll(
-            ProductSpecification.filter(search, category, minPrice, maxPrice)
-        ).map { it.toResponse() }
+        minPrice: BigDecimal?, maxPrice: BigDecimal?,
+        pageable: Pageable
+    ): PageResponse<ProductResponse> {
+        val page = productRepository.findAll(
+            ProductSpecification.filter(search, category, minPrice, maxPrice),
+            pageable
+        )
+        return PageResponse(
+            content = page.content.map { it.toResponse() },
+            totalElements = page.totalElements,
+            totalPages = page.totalPages,
+            page = pageable.pageNumber,
+            size = pageable.pageSize
+        )
+    }
 
     @Transactional
     fun update(id: Long, req: UpdateProductRequest): ProductResponse {
         val product = productRepository.findById(id)
             .orElseThrow { NoSuchElementException("Product $id not found") }
-        req.name?.let { product.name = it }
+        req.name?.let {
+            require(it.isNotBlank()) { "name must not be blank" }
+            product.name = it
+        }
         req.description?.let { product.description = it }
         req.price?.let { product.price = it }
         req.stock?.let { product.stock = it }
         req.category?.let { product.category = it }
         req.imageUrl?.let { product.imageUrl = it }
-        return productRepository.save(product).toResponse()
+        return product.toResponse()
     }
 
+    @Transactional
     fun delete(id: Long) {
         if (!productRepository.existsById(id)) throw NoSuchElementException("Product $id not found")
         productRepository.deleteById(id)
     }
 
     @Transactional
-    fun decreaseStockByName(productName: String, quantity: Int) {
-        val products = productRepository.findByNameContainingIgnoreCase(productName)
-        products.firstOrNull()?.let { product ->
-            if (product.stock >= quantity) {
-                product.stock -= quantity
-                productRepository.save(product)
-            }
+    fun decreaseStock(productName: String, quantity: Int) {
+        val product = productRepository.findFirstByNameIgnoreCase(productName)
+            .orElse(null)
+        if (product == null) {
+            log.warn("Product not found by name '{}', stock not decreased", productName)
+            return
         }
+        if (product.stock < quantity) {
+            log.warn("Insufficient stock for '{}': have {}, need {}", productName, product.stock, quantity)
+            return
+        }
+        product.stock -= quantity
     }
 }

@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_DB: shopdb
       POSTGRES_USER: shop
-      POSTGRES_PASSWORD: shop123
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-shop123}
     ports:
       - "5432:5432"
     volumes:
@@ -23,8 +23,8 @@ services:
       - "5672:5672"
       - "15672:15672"
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
       interval: 10s
@@ -43,7 +43,8 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/shopdb
       SPRING_DATASOURCE_USERNAME: shop
-      SPRING_DATASOURCE_PASSWORD: shop123
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-shop123}
+      JWT_SECRET: ${JWT_SECRET}
 
   order-service:
     build:
@@ -59,8 +60,9 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/shopdb
       SPRING_DATASOURCE_USERNAME: shop
-      SPRING_DATASOURCE_PASSWORD: shop123
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-shop123}
       SPRING_RABBITMQ_HOST: rabbitmq
+      JWT_SECRET: ${JWT_SECRET}
 
   notification-service:
     build:
@@ -88,8 +90,12 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/shopdb
       SPRING_DATASOURCE_USERNAME: shop
-      SPRING_DATASOURCE_PASSWORD: shop123
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-shop123}
+      DB_PASSWORD: ${DB_PASSWORD:-shop123}
       SPRING_RABBITMQ_HOST: rabbitmq
+      JWT_SECRET: ${JWT_SECRET}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
       CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
 
   cart-service:
@@ -104,7 +110,8 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/shopdb
       SPRING_DATASOURCE_USERNAME: shop
-      SPRING_DATASOURCE_PASSWORD: shop123
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-shop123}
+      JWT_SECRET: ${JWT_SECRET}
 
   wishlist-service:
     build:
@@ -118,7 +125,8 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/shopdb
       SPRING_DATASOURCE_USERNAME: shop
-      SPRING_DATASOURCE_PASSWORD: shop123
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-shop123}
+      JWT_SECRET: ${JWT_SECRET}
 
   api-gateway:
     build:

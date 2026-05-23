@@ -12,8 +12,9 @@ class JwtService(@Value("\${jwt.secret}") private val secret: String) {
     private val key by lazy { Keys.hmacShaKeyFor(secret.toByteArray()) }
     private val expiration = 86_400_000L // 24h
 
-    fun generateToken(email: String): String = Jwts.builder()
+    fun generateToken(email: String, role: String): String = Jwts.builder()
         .subject(email)
+        .claim("role", role)
         .issuedAt(Date())
         .expiration(Date(System.currentTimeMillis() + expiration))
         .signWith(key)

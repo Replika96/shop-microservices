@@ -19,14 +19,15 @@ class AuthService(
         require(!userRepository.existsByEmail(req.email)) { "Email already in use" }
         val user = User(email = req.email, password = passwordEncoder.encode(req.password), name = req.name)
         userRepository.save(user)
-        return AuthResponse(jwtService.generateToken(user.email), user.email, user.name)
+        return AuthResponse(jwtService.generateToken(user.email, user.role.name), user.email, user.name)
     }
 
     fun login(req: LoginRequest): AuthResponse {
         authManager.authenticate(UsernamePasswordAuthenticationToken(req.email, req.password))
         val user = userRepository.findByEmail(req.email).orElseThrow()
-        return AuthResponse(jwtService.generateToken(user.email), user.email, user.name)
+        return AuthResponse(jwtService.generateToken(user.email, user.role.name), user.email, user.name)
     }
+
     fun getProfile(email: String): UserProfileResponse {
         val user = userRepository.findByEmail(email)
             .orElseThrow { NoSuchElementException("User not found") }

@@ -13,6 +13,10 @@ class JwtService(@Value("\${jwt.secret}") private val secret: String) {
         .verifyWith(key).build()
         .parseSignedClaims(token).payload.subject
 
+    fun extractRole(token: String): String = Jwts.parser()
+        .verifyWith(key).build()
+        .parseSignedClaims(token).payload["role"] as? String ?: "USER"
+
     fun isValid(token: String): Boolean = runCatching {
         Jwts.parser().verifyWith(key).build().parseSignedClaims(token)
         true

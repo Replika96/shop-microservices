@@ -5,7 +5,7 @@ import java.math.BigDecimal
 
 @Entity
 @Table(name = "products")
-data class Product(
+class Product(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
     @Column(nullable = false) var name: String,

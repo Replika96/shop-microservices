@@ -15,7 +15,7 @@ class OrderService(
         val order = orderRepository.save(
             Order(userEmail = email, productName = req.productName, quantity = req.quantity, price = req.price)
         )
-        publisher.publish(OrderEvent(order.id, email, order.status.name, order.productName))
+        publisher.publish(OrderEvent(order.id, email, order.status.name, order.productName, order.quantity))
         return order.toResponse()
     }
 
@@ -32,7 +32,7 @@ class OrderService(
         val order = orderRepository.findById(id).orElseThrow { NoSuchElementException("Order $id not found") }
         order.status = req.status
         val saved = orderRepository.save(order)
-        publisher.publish(OrderEvent(saved.id, saved.userEmail, saved.status.name, saved.productName))
+        publisher.publish(OrderEvent(saved.id, saved.userEmail, saved.status.name, saved.productName, saved.quantity))
         return saved.toResponse()
     }
 }
