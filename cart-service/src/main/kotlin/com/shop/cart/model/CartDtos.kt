@@ -3,15 +3,11 @@ package com.shop.cart.model
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.Min
-import jakarta.validation.constraints.Positive
 import java.math.BigDecimal
 
 data class AddToCartRequest @JsonCreator constructor(
     @JsonProperty("productId") val productId: Long,
-    @JsonProperty("productName") val productName: String,
-    @JsonProperty("price") @field:Positive val price: BigDecimal,
-    @JsonProperty("quantity") @field:Min(1) val quantity: Int = 1,
-    @JsonProperty("imageUrl") val imageUrl: String = ""
+    @JsonProperty("quantity") @field:Min(1) val quantity: Int = 1
 )
 
 data class UpdateQuantityRequest @JsonCreator constructor(

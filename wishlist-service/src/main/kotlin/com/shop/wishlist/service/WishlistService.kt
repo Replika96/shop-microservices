@@ -1,16 +1,22 @@
 package com.shop.wishlist.service
 
+import com.shop.wishlist.client.ProductClient
 import com.shop.wishlist.model.*
 import com.shop.wishlist.repository.WishlistRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
-class WishlistService(private val wishlistRepository: WishlistRepository) {
+class WishlistService(
+    private val wishlistRepository: WishlistRepository,
+    private val productClient: ProductClient
+) {
 
+    @Transactional(readOnly = true)
     fun getWishlist(email: String): List<WishlistItemResponse> =
         wishlistRepository.findByUserEmail(email).map { it.toResponse() }
 
+    @Transactional(readOnly = true)
     fun isInWishlist(email: String, productId: Long): Boolean =
         wishlistRepository.existsByUserEmailAndProductId(email, productId)
 
@@ -18,13 +24,17 @@ class WishlistService(private val wishlistRepository: WishlistRepository) {
     fun addToWishlist(email: String, req: AddToWishlistRequest): WishlistItemResponse {
         val existing = wishlistRepository.findByUserEmailAndProductId(email, req.productId)
         if (existing != null) return existing.toResponse()
+
+        // Данные товара — только от product-service, не от клиента
+        val product = productClient.getById(req.productId)
+
         return wishlistRepository.save(
             WishlistItem(
                 userEmail = email,
-                productId = req.productId,
-                productName = req.productName,
-                price = req.price,
-                imageUrl = req.imageUrl
+                productId = product.id,
+                productName = product.name,
+                price = product.price,
+                imageUrl = product.imageUrl
             )
         ).toResponse()
     }

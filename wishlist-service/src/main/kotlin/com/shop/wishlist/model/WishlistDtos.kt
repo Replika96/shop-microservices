@@ -5,10 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import java.math.BigDecimal
 
 data class AddToWishlistRequest @JsonCreator constructor(
-    @JsonProperty("productId") val productId: Long,
-    @JsonProperty("productName") val productName: String,
-    @JsonProperty("price") val price: BigDecimal,
-    @JsonProperty("imageUrl") val imageUrl: String = ""
+    @JsonProperty("productId") val productId: Long
 )
 
 data class WishlistItemResponse(

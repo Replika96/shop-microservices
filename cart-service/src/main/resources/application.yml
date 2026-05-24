@@ -21,3 +21,6 @@ springdoc:
 
 jwt:
   secret: ${JWT_SECRET}
+
+services:
+  product-url: ${PRODUCT_SERVICE_URL:http://product-service:8084}
