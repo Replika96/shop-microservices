@@ -21,7 +21,8 @@ class SecurityConfig(private val jwtAuthFilter: JwtAuthFilter) {
         .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
         .authorizeHttpRequests {
             it.requestMatchers(
-                "/api/auth/**",
+                "/api/auth/register",
+                "/api/auth/login",
                 "/v3/api-docs/**",
                 "/v3/api-docs",
                 "/swagger-ui/**",

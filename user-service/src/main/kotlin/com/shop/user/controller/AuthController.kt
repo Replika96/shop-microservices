@@ -8,14 +8,14 @@ import com.shop.user.model.UserProfileResponse
 import com.shop.user.service.AuthService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
-import org.apache.tomcat.util.net.openssl.ciphers.Authentication
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/auth")
-@Tag(name = "Authentication", description = "Register and login")
+@Tag(name = "Authentication", description = "Register, login and profile")
 class AuthController(private val authService: AuthService) {
 
     @PostMapping("/register")
@@ -30,14 +30,20 @@ class AuthController(private val authService: AuthService) {
 
     @GetMapping("/profile")
     @Operation(summary = "Get current user profile")
-    fun getProfile(authentication: Authentication): ResponseEntity<UserProfileResponse> =
-        ResponseEntity.ok(authService.getProfile(authentication.name))
+    fun getProfile(request: HttpServletRequest): ResponseEntity<UserProfileResponse> {
+        val email = request.getAttribute("userEmail") as? String
+            ?: return ResponseEntity.status(401).build()
+        return ResponseEntity.ok(authService.getProfile(email))
+    }
 
     @PatchMapping("/profile")
-    @Operation(summary = "Update current user profile")
+    @Operation(summary = "Update profile (name, address, phone)")
     fun updateProfile(
-        authentication: Authentication,
+        request: HttpServletRequest,
         @RequestBody req: UpdateProfileRequest
-    ): ResponseEntity<UserProfileResponse> =
-        ResponseEntity.ok(authService.updateProfile(authentication.name, req))
+    ): ResponseEntity<UserProfileResponse> {
+        val email = request.getAttribute("userEmail") as? String
+            ?: return ResponseEntity.status(401).build()
+        return ResponseEntity.ok(authService.updateProfile(email, req))
+    }
 }

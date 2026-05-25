@@ -3,6 +3,7 @@ package com.shop.cart.model
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.NotBlank
 import java.math.BigDecimal
 
 data class AddToCartRequest @JsonCreator constructor(
@@ -12,6 +13,10 @@ data class AddToCartRequest @JsonCreator constructor(
 
 data class UpdateQuantityRequest @JsonCreator constructor(
     @JsonProperty("quantity") @field:Min(1) val quantity: Int
+)
+
+data class MergeCartRequest @JsonCreator constructor(
+    @JsonProperty("guestId") @field:NotBlank val guestId: String
 )
 
 data class CartItemResponse(

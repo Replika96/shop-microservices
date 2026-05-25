@@ -5,10 +5,16 @@ import org.slf4j.LoggerFactory
 import org.springframework.amqp.rabbit.annotation.RabbitListener
 import org.springframework.stereotype.Service
 
-data class OrderCreatedEvent(
-    val orderId: Long = 0,
+data class OrderCreatedEventItem(
     val productName: String = "",
     val quantity: Int = 0
+)
+
+data class OrderCreatedEvent(
+    val orderId: Long = 0,
+    val userEmail: String = "",
+    val status: String = "",
+    val items: List<OrderCreatedEventItem> = emptyList()
 )
 
 @Service
@@ -17,9 +23,11 @@ class OrderEventConsumer(private val productService: ProductService) {
 
     @RabbitListener(queues = ["order.events"])
     fun onOrderEvent(event: OrderCreatedEvent) {
-        log.info("Order event received: orderId={}, product={}, qty={}", event.orderId, event.productName, event.quantity)
-        if (event.quantity > 0) {
-            productService.decreaseStock(event.productName, event.quantity)
+        log.info("Order event received: orderId={}, items={}", event.orderId, event.items.size)
+        event.items.forEach { item ->
+            if (item.quantity > 0) {
+                productService.decreaseStock(item.productName, item.quantity)
+            }
         }
     }
 }

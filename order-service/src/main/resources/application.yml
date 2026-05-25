@@ -25,3 +25,6 @@ springdoc:
 
 jwt:
   secret: ${JWT_SECRET}
+
+services:
+  cart-url: ${CART_SERVICE_URL:http://cart-service:8085}

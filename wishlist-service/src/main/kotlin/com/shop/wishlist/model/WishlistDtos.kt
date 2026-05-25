@@ -8,6 +8,10 @@ data class AddToWishlistRequest @JsonCreator constructor(
     @JsonProperty("productId") val productId: Long
 )
 
+data class MergeWishlistRequest @JsonCreator constructor(
+    @JsonProperty("guestId") val guestId: String
+)
+
 data class WishlistItemResponse(
     val id: Long,
     val productId: Long,

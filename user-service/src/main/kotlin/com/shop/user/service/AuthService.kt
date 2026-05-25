@@ -7,6 +7,7 @@ import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
 class AuthService(
@@ -15,6 +16,8 @@ class AuthService(
     private val jwtService: JwtService,
     private val authManager: AuthenticationManager
 ) {
+
+    @Transactional
     fun register(req: RegisterRequest): AuthResponse {
         require(!userRepository.existsByEmail(req.email)) { "Email already in use" }
         val user = User(email = req.email, password = passwordEncoder.encode(req.password), name = req.name)
@@ -22,22 +25,24 @@ class AuthService(
         return AuthResponse(jwtService.generateToken(user.email, user.role.name), user.email, user.name)
     }
 
+    @Transactional(readOnly = true)
     fun login(req: LoginRequest): AuthResponse {
         authManager.authenticate(UsernamePasswordAuthenticationToken(req.email, req.password))
         val user = userRepository.findByEmail(req.email).orElseThrow()
         return AuthResponse(jwtService.generateToken(user.email, user.role.name), user.email, user.name)
     }
 
-    fun getProfile(email: String): UserProfileResponse {
-        val user = userRepository.findByEmail(email)
+    @Transactional(readOnly = true)
+    fun getProfile(email: String): UserProfileResponse =
+        userRepository.findByEmail(email)
+            .map { it.toProfileResponse() }
             .orElseThrow { NoSuchElementException("User not found") }
-        return user.toProfileResponse()
-    }
 
+    @Transactional
     fun updateProfile(email: String, req: UpdateProfileRequest): UserProfileResponse {
         val user = userRepository.findByEmail(email)
             .orElseThrow { NoSuchElementException("User not found") }
-        req.name?.let { user.name = it }
+        req.name?.takeIf { it.isNotBlank() }?.let { user.name = it }
         req.surname?.let { user.surname = it }
         req.patronymic?.let { user.patronymic = it }
         req.phone?.let { user.phone = it }

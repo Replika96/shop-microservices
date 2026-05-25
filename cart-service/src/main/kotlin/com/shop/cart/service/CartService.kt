@@ -13,21 +13,26 @@ class CartService(
     private val productClient: ProductClient
 ) {
 
-    @Transactional(readOnly = true)
-    fun getCart(email: String): CartResponse {
-        val items = cartRepository.findByUserEmail(email).map { it.toResponse() }
+    // ─── Вспомогательный метод ──────────────────────────────────────────────
+
+    private fun buildResponse(items: List<CartItem>): CartResponse {
+        val responses = items.map { it.toResponse() }
         return CartResponse(
-            items = items,
-            totalItems = items.sumOf { it.quantity },
-            totalPrice = items.fold(BigDecimal.ZERO) { acc, item -> acc.add(item.total) }
+            items = responses,
+            totalItems = responses.sumOf { it.quantity },
+            totalPrice = responses.fold(BigDecimal.ZERO) { acc, i -> acc.add(i.total) }
         )
     }
 
+    // ─── Авторизованный пользователь ────────────────────────────────────────
+
+    @Transactional(readOnly = true)
+    fun getCart(email: String): CartResponse =
+        buildResponse(cartRepository.findByUserEmail(email))
+
     @Transactional
     fun addToCart(email: String, req: AddToCartRequest): CartResponse {
-        // Цена и данные товара — только от product-service, не от клиента
         val product = productClient.getById(req.productId)
-
         val existing = cartRepository.findByUserEmailAndProductId(email, req.productId)
         if (existing != null) {
             existing.quantity += req.quantity
@@ -67,7 +72,82 @@ class CartService(
     }
 
     @Transactional
-    fun clearCart(email: String) {
-        cartRepository.deleteByUserEmail(email)
+    fun clearCart(email: String) = cartRepository.deleteByUserEmail(email)
+
+    // ─── Гость ──────────────────────────────────────────────────────────────
+
+    @Transactional(readOnly = true)
+    fun getGuestCart(guestId: String): CartResponse =
+        buildResponse(cartRepository.findByGuestId(guestId))
+
+    @Transactional
+    fun addToGuestCart(guestId: String, req: AddToCartRequest): CartResponse {
+        val product = productClient.getById(req.productId)
+        val existing = cartRepository.findByGuestIdAndProductId(guestId, req.productId)
+        if (existing != null) {
+            existing.quantity += req.quantity
+            cartRepository.save(existing)
+        } else {
+            cartRepository.save(
+                CartItem(
+                    guestId = guestId,
+                    productId = product.id,
+                    productName = product.name,
+                    price = product.price,
+                    quantity = req.quantity,
+                    imageUrl = product.imageUrl
+                )
+            )
+        }
+        return getGuestCart(guestId)
+    }
+
+    @Transactional
+    fun updateGuestQuantity(guestId: String, itemId: Long, req: UpdateQuantityRequest): CartResponse {
+        val item = cartRepository.findById(itemId)
+            .orElseThrow { NoSuchElementException("Cart item $itemId not found") }
+        require(item.guestId == guestId) { "Access denied" }
+        item.quantity = req.quantity
+        cartRepository.save(item)
+        return getGuestCart(guestId)
+    }
+
+    @Transactional
+    fun removeGuestItem(guestId: String, itemId: Long): CartResponse {
+        val item = cartRepository.findById(itemId)
+            .orElseThrow { NoSuchElementException("Cart item $itemId not found") }
+        require(item.guestId == guestId) { "Access denied" }
+        cartRepository.delete(item)
+        return getGuestCart(guestId)
+    }
+
+    @Transactional
+    fun clearGuestCart(guestId: String) = cartRepository.deleteByGuestId(guestId)
+
+    // ─── Перенос корзины гостя на аккаунт ───────────────────────────────────
+
+    @Transactional
+    fun mergeCart(email: String, guestId: String): CartResponse {
+        val guestItems = cartRepository.findByGuestId(guestId)
+        guestItems.forEach { guestItem ->
+            val existing = cartRepository.findByUserEmailAndProductId(email, guestItem.productId)
+            if (existing != null) {
+                existing.quantity += guestItem.quantity
+                cartRepository.save(existing)
+            } else {
+                cartRepository.save(
+                    CartItem(
+                        userEmail = email,
+                        productId = guestItem.productId,
+                        productName = guestItem.productName,
+                        price = guestItem.price,
+                        quantity = guestItem.quantity,
+                        imageUrl = guestItem.imageUrl
+                    )
+                )
+            }
+        }
+        cartRepository.deleteByGuestId(guestId)
+        return getCart(email)
     }
 }
