@@ -10,7 +10,12 @@ spring:
     password: shop123
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 1
+    locations: classpath:db/migration
 
 springdoc:
   api-docs:
