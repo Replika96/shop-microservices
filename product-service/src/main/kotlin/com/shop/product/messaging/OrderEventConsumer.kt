@@ -23,10 +23,13 @@ class OrderEventConsumer(private val productService: ProductService) {
 
     @RabbitListener(queues = ["order.events"])
     fun onOrderEvent(event: OrderCreatedEvent) {
-        log.info("Order event received: orderId={}, items={}", event.orderId, event.items.size)
-        event.items.forEach { item ->
-            if (item.quantity > 0) {
-                productService.decreaseStock(item.productName, item.quantity)
+        log.info("Order event: orderId={}, status={}, items={}", event.orderId, event.status, event.items.size)
+        when (event.status) {
+            "PENDING" -> event.items.forEach { item ->
+                if (item.quantity > 0) productService.decreaseStock(item.productName, item.quantity)
+            }
+            "CANCELLED" -> event.items.forEach { item ->
+                if (item.quantity > 0) productService.increaseStock(item.productName, item.quantity)
             }
         }
     }

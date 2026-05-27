@@ -1,9 +1,6 @@
 package com.shop.order.controller
 
-import com.shop.order.model.CreateOrderRequest
-import com.shop.order.model.OrderResponse
-import com.shop.order.model.PageResponse
-import com.shop.order.model.UpdateStatusRequest
+import com.shop.order.model.*
 import com.shop.order.service.OrderService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -31,16 +28,28 @@ class OrderController(private val orderService: OrderService) {
         return ResponseEntity.status(HttpStatus.CREATED).body(orderService.create(email, req, token))
     }
 
+    @PostMapping("/{id}/cancel")
+    @Operation(summary = "Отменить заказ (только PENDING)")
+    fun cancel(
+        request: HttpServletRequest,
+        @PathVariable id: Long
+    ): ResponseEntity<OrderResponse> {
+        val email = request.getAttribute("userEmail") as? String
+            ?: return ResponseEntity.status(401).build()
+        return ResponseEntity.ok(orderService.cancel(email, id))
+    }
+
     @GetMapping("/my")
-    @Operation(summary = "Мои заказы (с позициями, с пагинацией)")
+    @Operation(summary = "Мои заказы (с пагинацией и фильтром по статусу)")
     fun getMyOrders(
         request: HttpServletRequest,
         @RequestParam(defaultValue = "0") page: Int,
-        @RequestParam(defaultValue = "10") size: Int
+        @RequestParam(defaultValue = "10") size: Int,
+        @RequestParam(required = false) status: OrderStatus?
     ): ResponseEntity<PageResponse<OrderResponse>> {
         val email = request.getAttribute("userEmail") as? String
             ?: return ResponseEntity.status(401).build()
-        return ResponseEntity.ok(orderService.getByUser(email, page, size))
+        return ResponseEntity.ok(orderService.getByUser(email, page, size, status))
     }
 
     @GetMapping("/{id}")
@@ -57,7 +66,7 @@ class OrderController(private val orderService: OrderService) {
         ResponseEntity.ok(orderService.getAll(page, size))
 
     @PatchMapping("/{id}/status")
-    @Operation(summary = "Обновить статус")
+    @Operation(summary = "Обновить статус (admin)")
     fun updateStatus(
         @PathVariable id: Long,
         @RequestBody req: UpdateStatusRequest

@@ -17,7 +17,22 @@ data class LoginRequest(
     @field:NotBlank val password: String
 )
 
-data class AuthResponse(val token: String, val email: String, val name: String)
+data class AuthResponse(
+    val token: String,
+    val refreshToken: String,
+    val email: String,
+    val name: String,
+    val role: String
+)
+
+data class RefreshTokenRequest @JsonCreator constructor(
+    @JsonProperty("refreshToken") @field:NotBlank val refreshToken: String
+)
+
+data class UpdatePasswordRequest @JsonCreator constructor(
+    @JsonProperty("currentPassword") @field:NotBlank val currentPassword: String,
+    @JsonProperty("newPassword") @field:NotBlank @field:Size(min = 6) val newPassword: String
+)
 
 data class UpdateProfileRequest @JsonCreator constructor(
     @JsonProperty("name") val name: String? = null,
@@ -41,9 +56,11 @@ data class UserProfileResponse(
     val region: String,
     val street: String,
     val zipCode: String,
+    val profilePhoto: String,
     val role: String
 )
 
 fun User.toProfileResponse() = UserProfileResponse(
-    id, email, name, surname, patronymic, phone, city, region, street, zipCode, role.name
+    id, email, name, surname, patronymic, phone,
+    city, region, street, zipCode, profilePhoto, role.name
 )

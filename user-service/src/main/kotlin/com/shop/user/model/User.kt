@@ -27,6 +27,9 @@ class User(
     var street: String = "",
     var zipCode: String = "",
 
+    // фото профиля (URL из Cloudinary)
+    var profilePhoto: String = "",
+
     @Enumerated(EnumType.STRING)
     val role: Role = Role.USER
 )

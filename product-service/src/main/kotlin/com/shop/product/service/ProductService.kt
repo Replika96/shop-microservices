@@ -49,6 +49,9 @@ class ProductService(private val productRepository: ProductRepository) {
         )
     }
 
+    @Transactional(readOnly = true)
+    fun getCategories(): List<Category> = Category.entries
+
     @Transactional
     fun update(id: Long, req: UpdateProductRequest): ProductResponse {
         val product = productRepository.findById(id)
@@ -71,10 +74,11 @@ class ProductService(private val productRepository: ProductRepository) {
         productRepository.deleteById(id)
     }
 
+    // Уменьшить остаток (вызывается из RabbitMQ consumer при создании заказа)
+    // @Version обеспечивает оптимистичную блокировку — при конфликте сообщение будет повторно обработано
     @Transactional
     fun decreaseStock(productName: String, quantity: Int) {
-        val product = productRepository.findFirstByNameIgnoreCase(productName)
-            .orElse(null)
+        val product = productRepository.findFirstByNameIgnoreCase(productName).orElse(null)
         if (product == null) {
             log.warn("Product not found by name '{}', stock not decreased", productName)
             return
@@ -84,5 +88,19 @@ class ProductService(private val productRepository: ProductRepository) {
             return
         }
         product.stock -= quantity
+        productRepository.save(product)
+    }
+
+    // Восстановить остаток (вызывается при отмене заказа)
+    @Transactional
+    fun increaseStock(productName: String, quantity: Int) {
+        val product = productRepository.findFirstByNameIgnoreCase(productName).orElse(null)
+        if (product == null) {
+            log.warn("Product not found by name '{}', stock not restored", productName)
+            return
+        }
+        product.stock += quantity
+        productRepository.save(product)
+        log.info("Stock restored for '{}': +{}, now {}", productName, quantity, product.stock)
     }
 }

@@ -33,3 +33,10 @@ jwt:
 
 services:
   cart-url: ${CART_SERVICE_URL:http://cart-service:8085}
+  product-url: ${PRODUCT_SERVICE_URL:http://product-service:8084}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health

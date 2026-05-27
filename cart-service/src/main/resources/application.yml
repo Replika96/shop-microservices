@@ -27,5 +27,14 @@ springdoc:
 jwt:
   secret: ${JWT_SECRET}
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+
 services:
   product-url: ${PRODUCT_SERVICE_URL:http://product-service:8084}

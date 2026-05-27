@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -27,6 +28,8 @@ class ProductController(
     private val imageService: ImageService
 ) {
 
+    private val allowedSortFields = setOf("id", "price", "name", "stock")
+
     @GetMapping
     @Operation(summary = "Поиск и фильтрация товаров")
     fun search(
@@ -35,11 +38,20 @@ class ProductController(
         @Parameter(description = "Минимальная цена") @RequestParam(required = false) minPrice: BigDecimal?,
         @Parameter(description = "Максимальная цена") @RequestParam(required = false) maxPrice: BigDecimal?,
         @Parameter(description = "Номер страницы (с 0)") @RequestParam(defaultValue = "0") page: Int,
-        @Parameter(description = "Размер страницы (макс 100)") @RequestParam(defaultValue = "20") size: Int
+        @Parameter(description = "Размер страницы (макс 100)") @RequestParam(defaultValue = "20") size: Int,
+        @Parameter(description = "Поле сортировки: id, price, name, stock") @RequestParam(defaultValue = "id") sortBy: String,
+        @Parameter(description = "Направление: asc, desc") @RequestParam(defaultValue = "asc") sortDir: String
     ): ResponseEntity<PageResponse<ProductResponse>> {
-        val pageable = PageRequest.of(page, size.coerceIn(1, 100))
+        val direction = if (sortDir.lowercase() == "desc") Sort.Direction.DESC else Sort.Direction.ASC
+        val field = if (sortBy in allowedSortFields) sortBy else "id"
+        val pageable = PageRequest.of(page, size.coerceIn(1, 100), Sort.by(direction, field))
         return ResponseEntity.ok(productService.search(search, category, minPrice, maxPrice, pageable))
     }
+
+    @GetMapping("/categories")
+    @Operation(summary = "Список всех категорий")
+    fun getCategories(): ResponseEntity<List<Category>> =
+        ResponseEntity.ok(productService.getCategories())
 
     @GetMapping("/{id}")
     @Operation(summary = "Получить товар по ID")
@@ -68,10 +80,6 @@ class ProductController(
 
     @PostMapping("/upload-image")
     @Operation(summary = "Загрузить изображение товара (admin)", security = [SecurityRequirement(name = "bearerAuth")])
-    fun uploadImage(
-        @RequestParam("file") file: MultipartFile
-    ): ResponseEntity<Map<String, String>> {
-        val url = imageService.upload(file)
-        return ResponseEntity.ok(mapOf("url" to url))
-    }
+    fun uploadImage(@RequestParam("file") file: MultipartFile): ResponseEntity<Map<String, String>> =
+        ResponseEntity.ok(mapOf("url" to imageService.upload(file)))
 }

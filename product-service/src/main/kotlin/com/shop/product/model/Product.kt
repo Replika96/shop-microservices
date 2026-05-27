@@ -13,7 +13,8 @@ class Product(
     @Column(nullable = false) var price: BigDecimal,
     @Column(nullable = false) var stock: Int = 0,
     @Enumerated(EnumType.STRING) var category: Category = Category.OTHER,
-    var imageUrl: String = ""
+    var imageUrl: String = "",
+    @Version val version: Long = 0   // оптимистичная блокировка
 )
 
 enum class Category {
