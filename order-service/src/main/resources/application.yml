@@ -13,6 +13,7 @@ spring:
       ddl-auto: none
   flyway:
     enabled: true
+    table: flyway_schema_history_order
     baseline-on-migrate: true
     baseline-version: 1
     locations: classpath:db/migration
