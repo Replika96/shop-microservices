@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_DB: shopdb
       POSTGRES_USER: shop
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-shop123}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -37,7 +37,7 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/shopdb
       SPRING_DATASOURCE_USERNAME: shop
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-shop123}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
       CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
@@ -56,7 +56,7 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/shopdb
       SPRING_DATASOURCE_USERNAME: shop
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-shop123}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       SPRING_RABBITMQ_HOST: rabbitmq
       JWT_SECRET: ${JWT_SECRET}
 
@@ -84,8 +84,8 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/shopdb
       SPRING_DATASOURCE_USERNAME: shop
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-shop123}
-      DB_PASSWORD: ${DB_PASSWORD:-shop123}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      DB_PASSWORD: ${DB_PASSWORD}
       SPRING_RABBITMQ_HOST: rabbitmq
       JWT_SECRET: ${JWT_SECRET}
       CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
@@ -103,7 +103,7 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/shopdb
       SPRING_DATASOURCE_USERNAME: shop
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-shop123}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
 
   wishlist-service:
@@ -117,7 +117,7 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/shopdb
       SPRING_DATASOURCE_USERNAME: shop
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-shop123}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
 
   api-gateway:
