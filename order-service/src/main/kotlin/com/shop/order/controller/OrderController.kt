@@ -45,11 +45,12 @@ class OrderController(private val orderService: OrderService) {
         request: HttpServletRequest,
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "10") size: Int,
-        @RequestParam(required = false) status: OrderStatus?
+        @RequestParam(required = false) status: String?
     ): ResponseEntity<PageResponse<OrderResponse>> {
         val email = request.getAttribute("userEmail") as? String
             ?: return ResponseEntity.status(401).build()
-        return ResponseEntity.ok(orderService.getByUser(email, page, size, status))
+        val orderStatus = status?.let { runCatching { OrderStatus.valueOf(it) }.getOrNull() }
+        return ResponseEntity.ok(orderService.getByUser(email, page, size, orderStatus))
     }
 
     @GetMapping("/{id}")
