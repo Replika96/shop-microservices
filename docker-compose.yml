@@ -133,6 +133,17 @@ services:
       - notification-service
       - product-service
 
+  admin-panel:
+    image: ghcr.io/replika96/shop-admin-panel:latest
+    build:
+      context: ./admin-panel
+      dockerfile: Dockerfile
+    ports:
+      - "8090:80"
+    depends_on:
+      - api-gateway
+    restart: unless-stopped
+
   # Nginx + HTTPS — раскомментировать когда будет готов фронт
   # nginx:
   #   image: nginx:alpine
