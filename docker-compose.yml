@@ -125,8 +125,7 @@ services:
     build:
       context: .
       dockerfile: api-gateway/Dockerfile
-    ports:
-      - "8080:8080"
+    # порт не пробрасываем наружу — nginx достучится внутри Docker-сети
     depends_on:
       - user-service
       - order-service
@@ -138,8 +137,7 @@ services:
     build:
       context: ./admin-panel
       dockerfile: Dockerfile
-    ports:
-      - "8090:80"
+    # порт не пробрасываем наружу — nginx достучится внутри Docker-сети
     depends_on:
       - api-gateway
     restart: unless-stopped
