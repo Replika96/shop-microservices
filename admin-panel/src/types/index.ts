@@ -13,7 +13,8 @@ export interface Product {
   price: number
   stock: number
   category: string
-  imageUrl: string
+  imageUrl: string      // первое фото (обратная совместимость)
+  imageUrls: string[]   // все фото
 }
 
 export interface PageResponse<T> {

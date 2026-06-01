@@ -19,8 +19,11 @@ class ProductService(private val productRepository: ProductRepository) {
         val product = Product(
             name = req.name, description = req.description,
             price = req.price, stock = req.stock,
-            category = req.category, imageUrl = req.imageUrl
+            category = req.category
         )
+        req.resolvedImageUrls().forEachIndexed { i, url ->
+            product.images.add(ProductImage(product = product, url = url, sortOrder = i))
+        }
         return productRepository.save(product).toResponse()
     }
 
@@ -64,7 +67,12 @@ class ProductService(private val productRepository: ProductRepository) {
         req.price?.let { product.price = it }
         req.stock?.let { product.stock = it }
         req.category?.let { product.category = it }
-        req.imageUrl?.let { product.imageUrl = it }
+        req.resolvedImageUrls()?.let { urls ->
+            product.images.clear()
+            urls.forEachIndexed { i, url ->
+                product.images.add(ProductImage(product = product, url = url, sortOrder = i))
+            }
+        }
         return product.toResponse()
     }
 

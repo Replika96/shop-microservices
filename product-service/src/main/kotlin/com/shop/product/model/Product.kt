@@ -1,6 +1,7 @@
 package com.shop.product.model
 
 import jakarta.persistence.*
+import org.hibernate.annotations.BatchSize
 import java.math.BigDecimal
 
 @Entity
@@ -13,9 +14,18 @@ class Product(
     @Column(nullable = false) var price: BigDecimal,
     @Column(nullable = false) var stock: Int = 0,
     @Enumerated(EnumType.STRING) var category: Category = Category.OTHER,
-    var imageUrl: String = "",
     @Version val version: Long = 0   // оптимистичная блокировка
-)
+) {
+    @OneToMany(
+        mappedBy = "product",
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true,
+        fetch = FetchType.EAGER
+    )
+    @OrderBy("sortOrder ASC")
+    @BatchSize(size = 50)
+    val images: MutableList<ProductImage> = mutableListOf()
+}
 
 enum class Category {
     BATH,        // Бани и чаны

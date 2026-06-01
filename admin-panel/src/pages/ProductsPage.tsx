@@ -15,11 +15,11 @@ const CATEGORY_NAMES: Record<string, string> = {
 
 interface ProductForm {
   name: string; description: string; price: string
-  stock: string; category: string; imageUrl: string
+  stock: string; category: string; imageUrls: string[]
 }
 
 const emptyForm: ProductForm = {
-  name: '', description: '', price: '', stock: '0', category: 'OTHER', imageUrl: '',
+  name: '', description: '', price: '', stock: '0', category: 'OTHER', imageUrls: [],
 }
 
 export function ProductsPage() {
@@ -48,7 +48,7 @@ export function ProductsPage() {
     mutationFn: (f: ProductForm) => createProduct({
       name: f.name, description: f.description,
       price: Number(f.price), stock: Number(f.stock),
-      category: f.category, imageUrl: f.imageUrl,
+      category: f.category, imageUrls: f.imageUrls,
     }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['products'] }); closeModal() },
   })
@@ -57,7 +57,7 @@ export function ProductsPage() {
     mutationFn: (f: ProductForm) => updateProduct(editingProduct!.id, {
       name: f.name, description: f.description,
       price: Number(f.price), stock: Number(f.stock),
-      category: f.category, imageUrl: f.imageUrl,
+      category: f.category, imageUrls: f.imageUrls,
     }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['products'] }); closeModal() },
   })
@@ -71,19 +71,24 @@ export function ProductsPage() {
 
   const openEdit = (p: Product) => {
     setEditingProduct(p)
-    setForm({ name: p.name, description: p.description, price: String(p.price), stock: String(p.stock), category: p.category, imageUrl: p.imageUrl })
+    setForm({
+      name: p.name, description: p.description,
+      price: String(p.price), stock: String(p.stock),
+      category: p.category,
+      imageUrls: p.imageUrls?.length ? p.imageUrls : p.imageUrl ? [p.imageUrl] : [],
+    })
     setModal('edit')
   }
 
   const closeModal = () => { setModal(null); setEditingProduct(null); setForm(emptyForm) }
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const files = Array.from(e.target.files ?? [])
+    if (!files.length) return
     setUploading(true)
     try {
-      const url = await uploadImage(file)
-      setForm(f => ({ ...f, imageUrl: url }))
+      const urls = await Promise.all(files.map(f => uploadImage(f)))
+      setForm(f => ({ ...f, imageUrls: [...f.imageUrls, ...urls] }))
     } catch {
       alert('Ошибка загрузки изображения')
     } finally {
@@ -91,6 +96,9 @@ export function ProductsPage() {
       e.target.value = ''
     }
   }
+
+  const removeImage = (idx: number) =>
+    setForm(f => ({ ...f, imageUrls: f.imageUrls.filter((_, i) => i !== idx) }))
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -151,10 +159,18 @@ export function ProductsPage() {
                     <tr key={p.id} className="hover:bg-gray-50">
                       <td className="px-6 py-3">
                         <div className="flex items-center gap-3">
-                          {p.imageUrl
-                            ? <img src={p.imageUrl} alt={p.name} className="w-10 h-10 object-cover rounded-lg bg-gray-100 shrink-0" />
-                            : <div className="w-10 h-10 bg-gray-100 rounded-lg shrink-0 flex items-center justify-center text-gray-400 text-xs">—</div>
-                          }
+                          {/* Превью: до 3 фото стопкой */}
+                          <div className="flex -space-x-2 shrink-0">
+                            {(p.imageUrls?.length ? p.imageUrls : p.imageUrl ? [p.imageUrl] : [])
+                              .slice(0, 3)
+                              .map((url, i) => (
+                                <img key={i} src={url} alt="" className="w-10 h-10 object-cover rounded-lg bg-gray-100 ring-2 ring-white" />
+                              ))
+                            }
+                            {!p.imageUrls?.length && !p.imageUrl && (
+                              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 text-xs">—</div>
+                            )}
+                          </div>
                           <div>
                             <div className="font-medium text-gray-900">{p.name}</div>
                             <div className="text-xs text-gray-400 truncate max-w-xs">{p.description}</div>
@@ -245,18 +261,50 @@ export function ProductsPage() {
                   {categories?.map(c => <option key={c} value={c}>{CATEGORY_NAMES[c] ?? c}</option>)}
                 </select>
               </div>
+
+              {/* Фото */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Фото</label>
-                <div className="flex items-center gap-3">
-                  {form.imageUrl && (
-                    <img src={form.imageUrl} alt="preview" className="w-16 h-16 object-cover rounded-lg border border-gray-200 shrink-0" />
-                  )}
-                  <label className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 cursor-pointer transition-colors">
-                    <Upload size={14} />
-                    {uploading ? 'Загрузка...' : 'Выбрать фото'}
-                    <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleImageUpload} className="hidden" disabled={uploading} />
-                  </label>
-                </div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Фото {form.imageUrls.length > 0 && <span className="text-gray-400 font-normal">({form.imageUrls.length})</span>}
+                </label>
+
+                {form.imageUrls.length > 0 && (
+                  <div className="grid grid-cols-4 gap-2 mb-3">
+                    {form.imageUrls.map((url, i) => (
+                      <div key={i} className="relative group aspect-square">
+                        <img src={url} alt="" className="w-full h-full object-cover rounded-lg border border-gray-200" />
+                        {i === 0 && (
+                          <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-[10px] text-center py-0.5 rounded-b-lg">
+                            главное
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => removeImage(i)}
+                          className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow"
+                        >
+                          <X size={10} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <label className="flex items-center gap-2 px-3 py-2 border border-dashed border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 cursor-pointer transition-colors w-fit">
+                  <Upload size={14} />
+                  {uploading ? 'Загрузка...' : 'Добавить фото'}
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    multiple
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    disabled={uploading}
+                  />
+                </label>
+                {form.imageUrls.length > 0 && (
+                  <p className="text-xs text-gray-400 mt-1">Первое фото — главное. Наведи чтобы удалить.</p>
+                )}
               </div>
 
               {(createMutation.isError || updateMutation.isError) && (

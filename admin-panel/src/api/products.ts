@@ -26,12 +26,12 @@ export const uploadImage = (file: File) => {
 
 export const createProduct = (data: {
   name: string; description: string; price: number
-  stock: number; category: string; imageUrl: string
+  stock: number; category: string; imageUrls: string[]
 }) => api.post<Product>('/products', data).then(r => r.data)
 
 export const updateProduct = (id: number, data: {
   name?: string; description?: string; price?: number
-  stock?: number; category?: string; imageUrl?: string
+  stock?: number; category?: string; imageUrls?: string[]
 }) => api.patch<Product>(`/products/${id}`, data).then(r => r.data)
 
 export const deleteProduct = (id: number) => api.delete(`/products/${id}`)
