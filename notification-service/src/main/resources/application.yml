@@ -5,10 +5,23 @@ spring:
   application:
     name: notification-service
   rabbitmq:
-    host: rabbitmq
+    host: ${SPRING_RABBITMQ_HOST:rabbitmq}
     port: 5672
     username: guest
     password: guest
+  mail:
+    host: ${MAIL_HOST:smtp.yandex.ru}
+    port: ${MAIL_PORT:465}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          ssl:
+            enable: true
+          auth: true
+          connectiontimeout: 5000
+          timeout: 5000
 
 springdoc:
   api-docs:
